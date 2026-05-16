@@ -14,6 +14,7 @@ import { colors, sizes } from '../src/constants/theme';
 import { useStorage, type SavedPainting } from '../src/hooks/useStorage';
 import { SprunkiCharacter } from '../src/components/SprunkiCharacter';
 import { CHARACTER_MAP } from '../src/constants/characters';
+import { Analytics } from '../src/utils/analytics';
 
 function PaintingCard({
   painting,
@@ -27,14 +28,10 @@ function PaintingCard({
   const zoneCount = Object.values(painting.zones).filter(Boolean).length;
 
   const handleLongPress = () => {
-    if (Platform.OS === 'web') {
-      if (window.confirm('Delete this painting?')) onDelete(painting.id);
-    } else {
-      Alert.alert('Delete painting?', `${character?.name ?? 'Character'} — ${date}`, [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: () => onDelete(painting.id) },
-      ]);
-    }
+    Alert.alert('Delete painting?', `${character?.name ?? 'Character'} — ${date}`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: () => onDelete(painting.id) },
+    ]);
   };
 
   return (
@@ -52,6 +49,7 @@ function PaintingCard({
         size={110}
       />
       <Text style={styles.cardName}>{character?.name ?? painting.characterId}</Text>
+      {/* F-07: use sizes.font.xs (16) — no hardcoded font sizes */}
       <Text style={styles.cardDate}>{date}</Text>
       <Text style={styles.cardZones}>{zoneCount} zones</Text>
     </TouchableOpacity>
@@ -72,6 +70,7 @@ export default function GalleryScreen() {
   }, [listPaintings]);
 
   useEffect(() => {
+    Analytics.screenView('gallery');
     load();
   }, [load]);
 
@@ -92,7 +91,7 @@ export default function GalleryScreen() {
           <Text style={styles.backBtnText}>← Back</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Gallery 🖼️</Text>
-        <View style={{ width: 72 }} />
+        <View style={{ width: sizes.touchMin }} />
       </View>
 
       {paintings.length === 0 && !loading ? (
@@ -132,7 +131,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   backBtn: {
-    width: 72,
+    width: sizes.touchMin,
     height: sizes.touchMin,
     justifyContent: 'center',
   },
@@ -170,12 +169,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
   },
+  // F-07: use sizes.font.xs (16) — no hardcoded values
   cardDate: {
-    fontSize: 14,
+    fontSize: sizes.font.xs,
     color: colors.textMuted,
   },
   cardZones: {
-    fontSize: 12,
+    fontSize: sizes.font.xs,
     color: colors.textMuted,
   },
   empty: {

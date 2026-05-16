@@ -17,10 +17,10 @@ import { SprunkiCharacter } from '../../src/components/SprunkiCharacter';
 import { ColorPalette } from '../../src/components/ColorPalette';
 import { MusicVisualizer } from '../../src/components/MusicVisualizer';
 import audioEngine from '../../src/audio/audioEngine';
+import { Analytics } from '../../src/utils/analytics';
 import type { SavedPainting } from '../../src/hooks/useStorage';
 import { v4 as uuidv4 } from 'uuid';
 
-// Web audio gate overlay
 function AudioGate({ onDismiss }: { onDismiss: () => void }) {
   return (
     <TouchableOpacity style={styles.gate} onPress={onDismiss} activeOpacity={1}>
@@ -31,23 +31,32 @@ function AudioGate({ onDismiss }: { onDismiss: () => void }) {
 }
 
 export default function PaintScreen() {
-  const { character: characterId } = useLocalSearchParams<{ character: string }>();
-  const router = useRouter();
-  const character = CHARACTER_MAP[characterId ?? 'blobby'];
+  const { character: rawCharacterId } = useLocalSearchParams<{ character: string }>();
 
+  // F-03: resolve to a valid character ID before any hook runs
+  const characterId =
+    rawCharacterId && CHARACTER_MAP[rawCharacterId] ? rawCharacterId : 'blobby';
+  const character = CHARACTER_MAP[characterId];
+
+  const router = useRouter();
   const { zones, selectedColor, activeColors, selectColor, tapZone, clearAll, hasChanges } =
-    usePaintState(character?.id ?? 'blobby');
+    usePaintState(characterId);
 
   const { savePainting } = useStorage();
   const [muted, setMuted] = useState(false);
-  const [audioReady, setAudioReady] = useState(false);
-  const [showGate, setShowGate] = useState(Platform.OS === 'web');
+  // F-02: skip gate for returning web users who already gestured
+  const [showGate, setShowGate] = useState(
+    Platform.OS === 'web' && !audioEngine.isReady()
+  );
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
+    Analytics.screenView('paint');
     if (Platform.OS !== 'web') {
-      // Native: preload immediately
-      audioEngine.preloadAll().then(() => setAudioReady(true));
+      audioEngine.preloadAll();
+    }
+    if (showGate) {
+      Analytics.audioGateShown();
     }
     return () => {
       audioEngine.stopAll();
@@ -55,18 +64,20 @@ export default function PaintScreen() {
   }, []);
 
   const handleAudioGateDismiss = async () => {
+    Analytics.audioGateDismissed();
     setShowGate(false);
     await audioEngine.preloadAll();
-    setAudioReady(true);
   };
 
   const handleMute = () => {
     const next = !muted;
     setMuted(next);
     audioEngine.setMuted(next);
+    next ? Analytics.audioMuted() : Analytics.audioUnmuted();
   };
 
   const handleSave = async () => {
+    if (!hasChanges) return;
     const painting: SavedPainting = {
       id: uuidv4(),
       characterId: character.id,
@@ -74,43 +85,36 @@ export default function PaintScreen() {
       createdAt: new Date().toISOString(),
     };
     await savePainting(painting);
+    Analytics.paintingSaved(
+      character.id,
+      Object.values(zones).filter(Boolean).length
+    );
     setSaved(true);
     setTimeout(() => setSaved(false), 1500);
   };
 
+  // F-06: use Alert.alert on all platforms — works on web via Expo's web Alert
   const handleHome = () => {
     if (hasChanges) {
-      if (Platform.OS === 'web') {
-        const ok = window.confirm('Go home? Unsaved changes will be lost.');
-        if (!ok) return;
-        audioEngine.stopAll();
-        router.back();
-      } else {
-        Alert.alert('Go home?', 'Unsaved changes will be lost.', [
-          { text: 'Stay', style: 'cancel' },
-          {
-            text: 'Go home',
-            onPress: () => {
-              audioEngine.stopAll();
-              router.back();
-            },
+      Alert.alert('Go home?', 'Unsaved changes will be lost.', [
+        { text: 'Stay', style: 'cancel' },
+        {
+          text: 'Go home',
+          style: 'destructive',
+          onPress: () => {
+            audioEngine.stopAll();
+            router.back();
           },
-        ]);
-      }
+        },
+      ]);
     } else {
       audioEngine.stopAll();
       router.back();
     }
   };
 
-  if (!character) {
-    router.back();
-    return null;
-  }
-
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.headerBtn}
@@ -143,7 +147,6 @@ export default function PaintScreen() {
         </View>
       </View>
 
-      {/* Character canvas */}
       <View style={styles.canvas}>
         <SprunkiCharacter
           characterId={character.id}
@@ -153,17 +156,14 @@ export default function PaintScreen() {
         />
       </View>
 
-      {/* Music visualizer */}
       <MusicVisualizer activeColors={activeColors} />
 
-      {/* Color palette */}
       <ColorPalette
         selectedColor={selectedColor}
         onSelectColor={selectColor}
         onClear={clearAll}
       />
 
-      {/* Web audio gate overlay */}
       {showGate && <AudioGate onDismiss={handleAudioGateDismiss} />}
     </SafeAreaView>
   );
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: sizes.spacing.sm,
+    paddingHorizontal: sizes.spacing.xs,
     height: 56,
     backgroundColor: colors.card,
     borderBottomWidth: 2,

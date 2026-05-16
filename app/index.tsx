@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -16,22 +16,32 @@ import { useRouter } from 'expo-router';
 import { colors, sizes } from '../src/constants/theme';
 import { CHARACTERS } from '../src/constants/characters';
 import { SprunkiCharacter } from '../src/components/SprunkiCharacter';
+import { Analytics } from '../src/utils/analytics';
 
 function CharacterCard({ character }: { character: (typeof CHARACTERS)[number] }) {
   const router = useRouter();
   const scale = useSharedValue(1);
+  // F-10: store timer ref so it can be cancelled on unmount
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
   const handlePress = () => {
+    Analytics.characterSelected(character.id);
     scale.value = withSpring(0.92, { damping: 10 }, () => {
       scale.value = withSpring(1.05, { damping: 8 }, () => {
         scale.value = withSpring(1);
       });
     });
-    setTimeout(() => router.push(`/paint/${character.id}`), 180);
+    timerRef.current = setTimeout(() => router.push(`/paint/${character.id}`), 180);
   };
 
   return (
@@ -56,6 +66,10 @@ function CharacterCard({ character }: { character: (typeof CHARACTERS)[number] }
 
 export default function HomeScreen() {
   const router = useRouter();
+
+  useEffect(() => {
+    Analytics.screenView('home');
+  }, []);
 
   return (
     <SafeAreaView style={styles.safe}>

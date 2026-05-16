@@ -4,7 +4,21 @@
       "Bash(git init *)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(git remote *)"
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(npm install *)",
+      "Bash(ffmpeg -version)",
+      "Bash(mkdir -p \"/Users/ben/Hanalulu Studio/Game-Sprunki-Color/assets/images\")",
+      "Bash(ffmpeg -y -f lavfi -i color=c=#FF6B35:size=1024x1024 -frames:v 1 icon.png)",
+      "Bash(ffmpeg -y -f lavfi -i color=c=#FFF9F0:size=1242x2688 -frames:v 1 splash.png)",
+      "Bash(ffmpeg -y -f lavfi -i color=c=#FF6B35:size=1024x1024 -frames:v 1 adaptive-icon.png)",
+      "Bash(ffmpeg -y -f lavfi -i color=c=#FF6B35:size=64x64 -frames:v 1 favicon.png)",
+      "Bash(npx expo *)",
+      "Bash(echo \"PID=$!\")",
+      "Bash(pkill -f \"expo start --web --port 8083\")",
+      "Bash(pkill -f \"metro.*8083\")",
+      "Bash(pkill -f \"expo start\")",
+      "Bash(pkill -f \"metro\")"
     ]
   }
 }

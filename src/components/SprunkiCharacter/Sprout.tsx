@@ -2,6 +2,7 @@ import React from 'react';
 import Svg, { Circle, Path, G } from 'react-native-svg';
 import { ZoneOverlay } from '../ZoneOverlay';
 import { CHARACTER_MAP } from '../../constants/characters';
+import { colors } from '../../constants/theme';
 import type { ZoneState } from '../../hooks/useStorage';
 import type { PaintColor } from '../../constants/colorMap';
 
@@ -36,21 +37,21 @@ export function Sprout({ zones, onTapZone, size = 300 }: Props) {
         ))}
       </G>
 
-      {/* Eyes */}
-      <Circle cx="86" cy="68" r="8" fill="#2D1B00" />
-      <Circle cx="114" cy="68" r="8" fill="#2D1B00" />
-      <Circle cx="89" cy="65" r="2.5" fill="#FFFFFF" />
-      <Circle cx="117" cy="65" r="2.5" fill="#FFFFFF" />
+      {/* W-06: use theme colors — no hardcoded hex */}
+      <Circle cx="86" cy="68" r="8" fill={colors.text} />
+      <Circle cx="114" cy="68" r="8" fill={colors.text} />
+      <Circle cx="89" cy="65" r="2.5" fill={colors.card} />
+      <Circle cx="117" cy="65" r="2.5" fill={colors.card} />
 
-      {/* Curious open mouth */}
       <Path
         d="M90,86 Q100,96 110,86"
-        stroke="#2D1B00"
+        stroke={colors.text}
         strokeWidth="3"
         fill="none"
         strokeLinecap="round"
       />
-      <Circle cx="100" cy="91" r="5" fill="#FF9999" opacity={0.5} />
+      {/* colors.blush added to theme for this decorative element */}
+      <Circle cx="100" cy="91" r="5" fill={colors.blush} opacity={0.5} />
     </Svg>
   );
 }

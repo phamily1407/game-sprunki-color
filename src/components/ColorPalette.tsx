@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet, Text, AccessibilityInfo } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { colors, sizes } from '../constants/theme';
 import { PAINT_COLORS, COLOR_MAP, type PaintColor } from '../constants/colorMap';
@@ -27,7 +27,7 @@ function ColorButton({
   }));
 
   const handlePress = () => {
-    scale.value = withSpring(1.2, { damping: 8 }, () => {
+    scale.value = withSpring(1.15, { damping: 8 }, () => {
       scale.value = withSpring(1);
     });
     onPress();
@@ -83,23 +83,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: sizes.spacing.sm,
+    paddingHorizontal: sizes.spacing.xs,
     paddingVertical: sizes.spacing.xs,
-    gap: sizes.spacing.xs,
+    gap: 4,
     backgroundColor: colors.card,
     borderTopWidth: 2,
     borderTopColor: colors.border,
     minHeight: 96,
   },
   btnWrapper: {
-    width: sizes.colorBtn,
-    height: sizes.colorBtn,
+    width: sizes.touchMin,
+    height: sizes.touchMin,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // F-01: visible circle is now full 72px — children tap what they see
   colorBtn: {
-    width: 52,
-    height: 52,
+    width: sizes.touchMin,
+    height: sizes.touchMin,
     borderRadius: sizes.radius.full,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -108,8 +109,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   selectedRing: {
-    borderWidth: 3,
-    borderColor: '#FFFFFF',
+    borderWidth: 4,
+    borderColor: colors.card,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.35,
@@ -117,8 +118,8 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   eraserBtn: {
-    width: 52,
-    height: 52,
+    width: sizes.touchMin,
+    height: sizes.touchMin,
     borderRadius: sizes.radius.full,
     backgroundColor: colors.zone.unpainted,
     alignItems: 'center',
@@ -127,6 +128,6 @@ const styles = StyleSheet.create({
     borderColor: colors.zone.outline,
   },
   eraserText: {
-    fontSize: 24,
+    fontSize: 28,
   },
 });

@@ -1,13 +1,17 @@
 import React from 'react';
-import { Platform } from 'react-native';
-import { Path, G } from 'react-native-svg';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import Animated, {
+  useSharedValue,
+  useAnimatedProps,
+  withSequence,
+  withTiming,
+  withSpring,
+} from 'react-native-reanimated';
+import { Path } from 'react-native-svg';
 import type { PaintColor } from '../constants/colorMap';
 import { COLOR_MAP } from '../constants/colorMap';
 import { colors } from '../constants/theme';
 
-// react-native-reanimated doesn't wrap SVG elements directly on all platforms,
-// so we animate an SVG Path via opacity/scale applied at the SVG group level.
+const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 interface Props {
   id: string;
@@ -17,23 +21,31 @@ interface Props {
   onTap: (zoneId: string) => void;
 }
 
-// Animated wrapper for the SVG Path — uses a plain SVG Path with onPress
-// The bounce effect is handled via a sibling Animated.View overlay on web,
-// and via the native driver scale on native.
-
 export function ZoneOverlay({ id, path, label, paintedColor, onTap }: Props) {
   const fill = paintedColor ? COLOR_MAP[paintedColor].hex : colors.zone.unpainted;
+  const fillOpacity = useSharedValue(1);
 
-  // SVG Path is not animatable via reanimated directly, so the bounce is
-  // done by temporarily changing opacity to signal the tap on native,
-  // and via CSS animation on web through the SVG.
+  const animatedProps = useAnimatedProps(() => ({
+    fillOpacity: fillOpacity.value,
+  }));
+
+  // F-08: bounce feedback — quick dim then spring back
+  const handlePress = () => {
+    fillOpacity.value = withSequence(
+      withTiming(0.45, { duration: 70 }),
+      withSpring(1, { damping: 6, stiffness: 200 })
+    );
+    onTap(id);
+  };
+
   return (
-    <Path
+    <AnimatedPath
+      animatedProps={animatedProps}
       d={path}
       fill={fill}
       stroke={colors.zone.outline}
       strokeWidth={2}
-      onPress={() => onTap(id)}
+      onPress={handlePress}
       accessibilityLabel={label}
       accessibilityRole="button"
     />

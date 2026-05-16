@@ -1,10 +1,10 @@
 import React from 'react';
-import Svg, { Circle, Ellipse, Path, G } from 'react-native-svg';
+import Svg, { Circle, Path, G } from 'react-native-svg';
 import { ZoneOverlay } from '../ZoneOverlay';
 import { CHARACTER_MAP } from '../../constants/characters';
+import { colors } from '../../constants/theme';
 import type { ZoneState } from '../../hooks/useStorage';
 import type { PaintColor } from '../../constants/colorMap';
-import { colors } from '../../constants/theme';
 
 interface Props {
   zones: ZoneState;
@@ -24,7 +24,6 @@ export function Blobby({ zones, onTapZone, size = 300 }: Props) {
       viewBox={VIEWBOX}
       accessibilityLabel="Blobby the blob character"
     >
-      {/* Paintable zones */}
       <G>
         {character.zones.map((zone) => (
           <ZoneOverlay
@@ -38,16 +37,15 @@ export function Blobby({ zones, onTapZone, size = 300 }: Props) {
         ))}
       </G>
 
-      {/* Eyes — decorative, not paintable */}
-      <Circle cx="84" cy="76" r="9" fill="#2D1B00" />
-      <Circle cx="116" cy="76" r="9" fill="#2D1B00" />
-      <Circle cx="87" cy="73" r="3" fill="#FFFFFF" />
-      <Circle cx="119" cy="73" r="3" fill="#FFFFFF" />
+      {/* W-06: use theme colors — no hardcoded hex */}
+      <Circle cx="84" cy="76" r="9" fill={colors.text} />
+      <Circle cx="116" cy="76" r="9" fill={colors.text} />
+      <Circle cx="87" cy="73" r="3" fill={colors.card} />
+      <Circle cx="119" cy="73" r="3" fill={colors.card} />
 
-      {/* Smile */}
       <Path
         d="M86,96 Q100,108 114,96"
-        stroke="#2D1B00"
+        stroke={colors.text}
         strokeWidth="3"
         fill="none"
         strokeLinecap="round"

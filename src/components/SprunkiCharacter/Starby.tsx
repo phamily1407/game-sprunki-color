@@ -1,7 +1,8 @@
 import React from 'react';
-import Svg, { Circle, Path, G } from 'react-native-svg';
+import Svg, { Path, G } from 'react-native-svg';
 import { ZoneOverlay } from '../ZoneOverlay';
 import { CHARACTER_MAP } from '../../constants/characters';
+import { colors } from '../../constants/theme';
 import type { ZoneState } from '../../hooks/useStorage';
 import type { PaintColor } from '../../constants/colorMap';
 
@@ -36,11 +37,10 @@ export function Starby({ zones, onTapZone, size = 300 }: Props) {
         ))}
       </G>
 
-      {/* Eyes are included as zones (leftEyeZone / rightEyeZone) */}
-      {/* Smile */}
+      {/* W-06: use theme colors — no hardcoded hex */}
       <Path
         d="M90,118 Q100,126 110,118"
-        stroke="#2D1B00"
+        stroke={colors.text}
         strokeWidth="2.5"
         fill="none"
         strokeLinecap="round"
