@@ -1,53 +1,41 @@
-import React from 'react';
-import Animated, {
-  useSharedValue,
-  useAnimatedProps,
-  withSequence,
-  withTiming,
-  withSpring,
-} from 'react-native-reanimated';
-import { Path } from 'react-native-svg';
+import React, { useState } from 'react';
+import { Circle, Ellipse, Path } from 'react-native-svg';
 import type { PaintColor } from '../constants/colorMap';
+import type { ZoneDefinition } from '../constants/characters';
 import { COLOR_MAP } from '../constants/colorMap';
 import { colors } from '../constants/theme';
 
-const AnimatedPath = Animated.createAnimatedComponent(Path);
-
 interface Props {
-  id: string;
-  path: string;
-  label: string;
+  zone: ZoneDefinition;
   paintedColor: PaintColor | null;
   onTap: (zoneId: string) => void;
 }
 
-export function ZoneOverlay({ id, path, label, paintedColor, onTap }: Props) {
+export function ZoneOverlay({ zone, paintedColor, onTap }: Props) {
+  const [pressed, setPressed] = useState(false);
+
   const fill = paintedColor ? COLOR_MAP[paintedColor].hex : colors.zone.unpainted;
-  const fillOpacity = useSharedValue(1);
+  const opacity = pressed ? 0.45 : 1;
 
-  const animatedProps = useAnimatedProps(() => ({
-    fillOpacity: fillOpacity.value,
-  }));
-
-  // F-08: bounce feedback — quick dim then spring back
-  const handlePress = () => {
-    fillOpacity.value = withSequence(
-      withTiming(0.45, { duration: 70 }),
-      withSpring(1, { damping: 6, stiffness: 200 })
-    );
-    onTap(id);
+  const sharedProps = {
+    fill,
+    stroke: colors.zone.outline,
+    strokeWidth: 2,
+    opacity,
+    onPressIn: () => setPressed(true),
+    onPressOut: () => setPressed(false),
+    onPress: () => onTap(zone.id),
+    accessibilityLabel: zone.label,
+    accessibilityRole: 'button' as const,
   };
 
-  return (
-    <AnimatedPath
-      animatedProps={animatedProps}
-      d={path}
-      fill={fill}
-      stroke={colors.zone.outline}
-      strokeWidth={2}
-      onPress={handlePress}
-      accessibilityLabel={label}
-      accessibilityRole="button"
-    />
-  );
+  const { shape } = zone;
+
+  if (shape.kind === 'circle') {
+    return <Circle {...sharedProps} cx={shape.cx} cy={shape.cy} r={shape.r} />;
+  }
+  if (shape.kind === 'ellipse') {
+    return <Ellipse {...sharedProps} cx={shape.cx} cy={shape.cy} rx={shape.rx} ry={shape.ry} />;
+  }
+  return <Path {...sharedProps} d={shape.d} />;
 }

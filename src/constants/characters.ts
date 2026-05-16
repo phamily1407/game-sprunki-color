@@ -1,157 +1,175 @@
 import { colors } from './theme';
 
-export type ZoneId = string;
+export type ZoneId = 'face' | 'hair' | 'leftEye' | 'rightEye' | 'nose' | 'mouth' | 'accessory';
+
+export type ZoneShape =
+  | { kind: 'circle';  cx: number; cy: number; r: number }
+  | { kind: 'ellipse'; cx: number; cy: number; rx: number; ry: number }
+  | { kind: 'path';    d: string };
 
 export interface ZoneDefinition {
   id: ZoneId;
   label: string;
-  // SVG path data — centered in a 200×240 viewBox
-  path: string;
+  shape: ZoneShape;
 }
 
 export interface CharacterDef {
   id: string;
   name: string;
   emoji: string;
+  viewBox: string;
+  aspectRatio: number; // SVG height / width
   zones: ZoneDefinition[];
 }
 
-// ── Blobby — friendly round blob ──────────────────────────────────────────
+// ── Blobby — round happy blob face ───────────────────────────────────────
 const blobbyZones: ZoneDefinition[] = [
   {
-    id: 'head',
-    label: 'Head',
-    path: 'M100,20 C140,20 165,50 165,80 C165,110 140,130 100,130 C60,130 35,110 35,80 C35,50 60,20 100,20 Z',
+    id: 'face',
+    label: 'Face',
+    shape: { kind: 'ellipse', cx: 100, cy: 122, rx: 82, ry: 85 },
   },
   {
-    id: 'body',
-    label: 'Body',
-    path: 'M65,128 C55,140 50,160 50,180 C50,210 70,225 100,225 C130,225 150,210 150,180 C150,160 145,140 135,128 Z',
+    id: 'hair',
+    label: 'Hair',
+    shape: {
+      kind: 'path',
+      d: 'M18,108 Q100,18 182,108 Q158,68 100,62 Q42,68 18,108 Z',
+    },
   },
   {
-    id: 'leftArm',
-    label: 'Left arm',
-    path: 'M50,135 C30,130 15,145 15,160 C15,175 30,182 48,175 C55,158 54,144 50,135 Z',
+    id: 'leftEye',
+    label: 'Left eye',
+    shape: { kind: 'circle', cx: 68, cy: 108, r: 22 },
   },
   {
-    id: 'rightArm',
-    label: 'Right arm',
-    path: 'M150,135 C170,130 185,145 185,160 C185,175 170,182 152,175 C145,158 146,144 150,135 Z',
+    id: 'rightEye',
+    label: 'Right eye',
+    shape: { kind: 'circle', cx: 132, cy: 108, r: 22 },
   },
   {
-    id: 'leftLeg',
-    label: 'Left leg',
-    path: 'M65,222 C60,232 58,245 62,255 C66,265 80,268 88,258 C90,245 88,230 85,222 Z',
+    id: 'nose',
+    label: 'Nose',
+    shape: { kind: 'ellipse', cx: 100, cy: 138, rx: 14, ry: 10 },
   },
   {
-    id: 'rightLeg',
-    label: 'Right leg',
-    path: 'M135,222 C140,232 142,245 138,255 C134,265 120,268 112,258 C110,245 112,230 115,222 Z',
+    id: 'mouth',
+    label: 'Mouth',
+    shape: {
+      kind: 'path',
+      d: 'M65,155 Q100,185 135,155 Q118,168 100,170 Q82,168 65,155 Z',
+    },
   },
   {
-    id: 'leftEar',
-    label: 'Left ear',
-    path: 'M36,60 C24,55 18,68 22,80 C26,90 38,90 44,82 C46,72 44,63 36,60 Z',
-  },
-  {
-    id: 'rightEar',
-    label: 'Right ear',
-    path: 'M164,60 C176,55 182,68 178,80 C174,90 162,90 156,82 C154,72 156,63 164,60 Z',
+    id: 'accessory',
+    label: 'Bow',
+    shape: {
+      kind: 'path',
+      d: 'M80,42 C62,22 56,50 82,50 C88,46 88,42 84,40 Z M120,42 C138,22 144,50 118,50 C112,46 112,42 116,40 Z M87,46 C92,56 108,56 113,46 C108,40 92,40 87,46 Z',
+    },
   },
 ];
 
-// ── Sprout — plant/flower character ──────────────────────────────────────
+// ── Sprout — round plant/leaf character ──────────────────────────────────
 const sproutZones: ZoneDefinition[] = [
   {
-    id: 'head',
-    label: 'Head',
-    path: 'M100,25 C130,25 150,48 150,72 C150,96 130,115 100,115 C70,115 50,96 50,72 C50,48 70,25 100,25 Z',
+    id: 'face',
+    label: 'Face',
+    shape: { kind: 'ellipse', cx: 100, cy: 130, rx: 75, ry: 75 },
   },
   {
-    id: 'stem',
-    label: 'Stem',
-    path: 'M82,113 C78,135 76,160 78,185 C80,205 90,218 100,218 C110,218 120,205 122,185 C124,160 122,135 118,113 Z',
+    id: 'hair',
+    label: 'Leaf hair',
+    shape: {
+      kind: 'path',
+      d: 'M100,55 C80,28 42,35 48,68 C52,88 78,88 100,78 C122,88 148,88 152,68 C158,35 120,28 100,55 Z',
+    },
   },
   {
-    id: 'leftLeaf',
-    label: 'Left leaf',
-    path: 'M78,145 C55,130 30,138 28,158 C26,175 48,185 72,172 C80,162 82,152 78,145 Z',
+    id: 'leftEye',
+    label: 'Left eye',
+    shape: { kind: 'circle', cx: 74, cy: 118, r: 20 },
   },
   {
-    id: 'rightLeaf',
-    label: 'Right leaf',
-    path: 'M122,145 C145,130 170,138 172,158 C174,175 152,185 128,172 C120,162 118,152 122,145 Z',
+    id: 'rightEye',
+    label: 'Right eye',
+    shape: { kind: 'circle', cx: 126, cy: 118, r: 20 },
   },
   {
-    id: 'roots',
-    label: 'Roots',
-    path: 'M78,216 C68,228 60,242 65,255 C70,265 90,265 100,252 C110,265 130,265 135,255 C140,242 132,228 122,216 Z',
+    id: 'nose',
+    label: 'Nose',
+    shape: { kind: 'circle', cx: 100, cy: 142, r: 10 },
   },
   {
-    id: 'flowerTop',
-    label: 'Flower top',
-    path: 'M100,10 C108,0 122,2 122,14 C122,22 114,26 100,24 C86,26 78,22 78,14 C78,2 92,0 100,10 Z',
+    id: 'mouth',
+    label: 'Mouth',
+    shape: {
+      kind: 'path',
+      d: 'M68,160 Q100,182 132,160 Q115,172 100,174 Q85,172 68,160 Z',
+    },
   },
   {
-    id: 'leftPetal',
-    label: 'Left petal',
-    path: 'M52,38 C38,28 30,14 38,6 C46,0 58,8 60,22 C58,32 56,38 52,38 Z',
-  },
-  {
-    id: 'rightPetal',
-    label: 'Right petal',
-    path: 'M148,38 C162,28 170,14 162,6 C154,0 142,8 140,22 C142,32 144,38 148,38 Z',
+    id: 'accessory',
+    label: 'Flower',
+    shape: {
+      kind: 'path',
+      d: 'M100,22 L104,35 L117,32 L108,42 L115,55 L100,48 L85,55 L92,42 L83,32 L96,35 Z',
+    },
   },
 ];
 
-// ── Starby — 5-pointed star character ────────────────────────────────────
+// ── Starby — star-haired sparkle character ───────────────────────────────
 const starbyZones: ZoneDefinition[] = [
   {
-    id: 'centerBody',
-    label: 'Center body',
-    path: 'M100,75 L115,120 L162,120 L125,147 L138,192 L100,165 L62,192 L75,147 L38,120 L85,120 Z',
+    id: 'face',
+    label: 'Face',
+    shape: { kind: 'ellipse', cx: 100, cy: 118, rx: 70, ry: 68 },
   },
   {
-    id: 'topPoint',
-    label: 'Top point',
-    path: 'M100,10 L110,55 L100,75 L90,55 Z',
+    id: 'hair',
+    label: 'Star hair',
+    shape: {
+      kind: 'path',
+      d: 'M100,50 L112,78 L142,70 L120,88 L130,118 L100,102 L70,118 L80,88 L58,70 L88,78 Z',
+    },
   },
   {
-    id: 'topRightPoint',
-    label: 'Top-right point',
-    path: 'M170,42 L138,75 L125,66 L148,38 Z',
+    id: 'leftEye',
+    label: 'Left eye',
+    shape: { kind: 'circle', cx: 76, cy: 110, r: 19 },
   },
   {
-    id: 'bottomRightPoint',
-    label: 'Bottom-right point',
-    path: 'M160,145 L125,145 L138,192 L162,165 Z',
+    id: 'rightEye',
+    label: 'Right eye',
+    shape: { kind: 'circle', cx: 124, cy: 110, r: 19 },
   },
   {
-    id: 'bottomLeftPoint',
-    label: 'Bottom-left point',
-    path: 'M40,145 L75,145 L62,192 L38,165 Z',
+    id: 'nose',
+    label: 'Nose',
+    shape: { kind: 'ellipse', cx: 100, cy: 132, rx: 11, ry: 9 },
   },
   {
-    id: 'topLeftPoint',
-    label: 'Top-left point',
-    path: 'M30,42 L62,75 L75,66 L52,38 Z',
+    id: 'mouth',
+    label: 'Mouth',
+    shape: {
+      kind: 'path',
+      d: 'M72,150 Q100,170 128,150 Q112,162 100,163 Q88,162 72,150 Z',
+    },
   },
   {
-    id: 'leftEyeZone',
-    label: 'Left eye zone',
-    path: 'M82,95 C78,90 74,94 76,100 C78,106 84,106 86,100 C88,96 86,92 82,95 Z',
-  },
-  {
-    id: 'rightEyeZone',
-    label: 'Right eye zone',
-    path: 'M118,95 C114,90 110,94 112,100 C114,106 120,106 122,100 C124,96 122,92 118,95 Z',
+    id: 'accessory',
+    label: 'Tiara',
+    shape: {
+      kind: 'path',
+      d: 'M76,60 L80,50 L84,60 L92,54 L96,64 L100,56 L104,64 L108,54 L116,60 L120,50 L124,60 L124,68 L76,68 Z',
+    },
   },
 ];
 
 export const CHARACTERS: CharacterDef[] = [
-  { id: 'blobby', name: 'Blobby', emoji: '🟢', zones: blobbyZones },
-  { id: 'sprout', name: 'Sprout', emoji: '🌱', zones: sproutZones },
-  { id: 'starby', name: 'Starby', emoji: '⭐', zones: starbyZones },
+  { id: 'blobby', name: 'Blobby', emoji: '😊', viewBox: '0 0 200 220', aspectRatio: 220 / 200, zones: blobbyZones },
+  { id: 'sprout', name: 'Sprout', emoji: '🌿', viewBox: '0 0 200 225', aspectRatio: 225 / 200, zones: sproutZones },
+  { id: 'starby', name: 'Starby', emoji: '⭐', viewBox: '0 0 200 215', aspectRatio: 215 / 200, zones: starbyZones },
 ];
 
 export const CHARACTER_MAP: Record<string, CharacterDef> = Object.fromEntries(

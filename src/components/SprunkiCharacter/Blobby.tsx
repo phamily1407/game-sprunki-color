@@ -1,5 +1,5 @@
 import React from 'react';
-import Svg, { Circle, Path, G } from 'react-native-svg';
+import Svg, { Circle, Path, Ellipse } from 'react-native-svg';
 import { ZoneOverlay } from '../ZoneOverlay';
 import { CHARACTER_MAP } from '../../constants/characters';
 import { colors } from '../../constants/theme';
@@ -12,44 +12,34 @@ interface Props {
   size?: number;
 }
 
-const VIEWBOX = '0 0 200 280';
-
 export function Blobby({ zones, onTapZone, size = 300 }: Props) {
   const character = CHARACTER_MAP['blobby'];
+  const h = Math.round(size * character.aspectRatio);
 
   return (
-    <Svg
-      width={size}
-      height={size * 1.4}
-      viewBox={VIEWBOX}
-      accessibilityLabel="Blobby the blob character"
-    >
-      <G>
-        {character.zones.map((zone) => (
+    <Svg width={size} height={h} viewBox={character.viewBox} accessibilityLabel="Blobby">
+      {/* Zones rendered bottom to top: face first, accessories last */}
+      {['face', 'hair', 'leftEye', 'rightEye', 'nose', 'mouth', 'accessory'].map((id) => {
+        const zone = character.zones.find((z) => z.id === id);
+        if (!zone) return null;
+        return (
           <ZoneOverlay
             key={zone.id}
-            id={zone.id}
-            path={zone.path}
-            label={zone.label}
+            zone={zone}
             paintedColor={(zones[zone.id] as PaintColor | null) ?? null}
             onTap={onTapZone}
           />
-        ))}
-      </G>
+        );
+      })}
 
-      {/* W-06: use theme colors — no hardcoded hex */}
-      <Circle cx="84" cy="76" r="9" fill={colors.text} />
-      <Circle cx="116" cy="76" r="9" fill={colors.text} />
-      <Circle cx="87" cy="73" r="3" fill={colors.card} />
-      <Circle cx="119" cy="73" r="3" fill={colors.card} />
+      {/* Decorative pupils — not paintable */}
+      <Circle cx={62} cy={103} r={8} fill={colors.text} />
+      <Circle cx={126} cy={103} r={8} fill={colors.text} />
+      <Circle cx={65} cy={100} r={3} fill={colors.card} />
+      <Circle cx={129} cy={100} r={3} fill={colors.card} />
 
-      <Path
-        d="M86,96 Q100,108 114,96"
-        stroke={colors.text}
-        strokeWidth="3"
-        fill="none"
-        strokeLinecap="round"
-      />
+      {/* Bow knot highlight */}
+      <Circle cx={100} cy={46} r={4} fill={colors.card} opacity={0.6} />
     </Svg>
   );
 }

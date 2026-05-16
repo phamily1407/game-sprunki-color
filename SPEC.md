@@ -2,61 +2,75 @@
 # Game Design + Technical Specification
 
 > Owner: Product Manager agent
-> Status: v1.0 — approved
-> Last updated: Sprint 0
+> Status: v2.0 — approved
+> Last updated: Sprint 1 Hotfix / v1.0.1
 
 ---
 
 ## 1. Game overview
 
 ### Vision
-A zero-pressure creative toy for children aged 3–10 where painting and music-making happen simultaneously. Every color choice is also a musical choice — the child composes without knowing it.
+A zero-pressure creative toy for children aged 3–10 where painting a character's body parts and making music happen simultaneously. Every color choice is also a musical choice — the child composes without knowing it.
 
 ### Core loop
 ```
-Select color → Tap zone on character → Zone fills with color
-                                     → Instrument starts playing
-                                     ↕ (tap again to unpaint)
-                                     → Instrument stops
+Select color → Tap a body part on the character → Body part fills with color
+                                                 → Instrument starts playing
+                                                 ↕ (tap again to unpaint)
+                                                 → Instrument stops
 ```
 
 ### Design philosophy
 - **No wrong answers** — every combination of colors sounds good together
-- **Instant feedback** — sound starts the moment a zone is tapped
+- **Instant feedback** — sound starts the moment a body part is tapped
 - **No instructions needed** — a 3-year-old can discover it by touching
 - **Infinite replay** — erase and repaint endlessly
 - **Parent-safe** — no ads, no in-app purchases in free tier, no dark themes
 
 ---
 
-## 2. Characters
+## 2. Characters & body parts
+
+Each character has exactly **7 paintable body parts** matching the 7 colors:
+
+| Zone ID | Body Part | Description |
+|---|---|---|
+| `face` | Face / Skin | The main face area — skin, cheeks, base color |
+| `hair` | Hair | Hair, fur, leaves, or head decoration |
+| `leftEye` | Left Eye | Left eye area |
+| `rightEye` | Right Eye | Right eye area |
+| `nose` | Nose | Nose area |
+| `mouth` | Mouth | Mouth / smile area |
+| `accessory` | Accessory | Hat, bow, flower, crown, or other head accessory |
 
 ### Blobby (Starter — unlocked by default)
-- Shape: friendly round blob
-- Paintable zones: head, body, left arm, right arm, left leg, right leg, left ear, right ear
-- Expression: big round eyes, small smile — always happy
-- Size on screen: fills 85% of canvas width
+- Shape: friendly round blob face
+- Personality: always happy, big round eyes
+- Accessory: cute bow on top of head
 
 ### Sprout (Starter — unlocked by default)
-- Shape: plant/flower-like character with leaf arms
-- Paintable zones: head, stem/body, left leaf, right leaf, roots/feet, flower top, left petal, right petal
-- Expression: curious eyes, open mouth
+- Shape: round plant/leaf character
+- Personality: curious, open mouth
+- Hair: leaf-shaped hair crown
+- Accessory: star flower on top
 
 ### Starby (Starter — unlocked by default)
-- Shape: 5-pointed star character
-- Paintable zones: center body, top point, bottom-left point, bottom-right point, top-left point, top-right point, left eye zone, right eye zone
+- Shape: face with spiky star-shaped hair
+- Personality: sparkly, playful
+- Hair: crown of star points
+- Accessory: small tiara
 
 ### Future characters (post-launch)
-- Cloudy (cloud shape)
-- Finny (fish shape)
-- Dropy (raindrop shape)
+- Cloudy (cloud shape, puff hair)
+- Finny (fish shape, fin hair)
+- Dropy (raindrop shape, wavy hair)
 
 ---
 
 ## 3. Audio system
 
 ### Requirements
-- All 7 loops must be: 90 BPM, C major, 8 bars, seamless loop
+- All 7 loops: 90 BPM, C major, 8 bars, seamless loop
 - Max simultaneous tracks: 7 (one per color)
 - Fade in on play: 200ms
 - Fade out on stop: 300ms
@@ -91,24 +105,25 @@ interface AudioEngine {
 **Elements:**
 - App name "Sprunki Color 🎨" — large, playful font
 - Subtitle "Tap a friend!" — 22px
-- 3 character cards in a row (all zones grey = unpainted preview)
+- 3 character cards in a row (preview of character with all parts grey)
 - Character name below each card
 - Gallery button bottom right (🖼️)
-- Web: PWA install banner after 3rd visit
 
 **Interactions:**
 - Tap character card → bounce animation → navigate to /paint/[id]
 - Tap gallery → navigate to /gallery
 
 ### Screen 2 — Paint (app/paint/[character].tsx)
-**Purpose:** Main game screen — paint + music
+**Purpose:** Main game screen — paint body parts + music
 **Layout (portrait):**
 ```
 ┌─────────────────────────────┐
-│ 🏠  Sprunki Color    🔊 💾 │ 48px header
+│ 🏠  Sprunki Color    🔊 💾 │ 56px header
 ├─────────────────────────────┤
 │                             │
-│     [SprunkiCharacter]      │ 52% height
+│   [Character face — SVG]    │ flex:1
+│  Hair / Eyes / Nose / Mouth │
+│      / Face / Accessory     │
 │                             │
 ├─────────────────────────────┤
 │   ▮  ▯  ▮  ▯  ▮  ▯  ▮    │ 60px music visualizer
@@ -119,20 +134,19 @@ interface AudioEngine {
 
 **Interactions:**
 - Tap color → select (highlighted ring)
-- Tap unpainted zone → fill with color + instrument starts
-- Tap painted zone → erase + instrument stops (if no other zone has same color)
+- Tap unpainted body part → fill with color + instrument starts
+- Tap painted body part → erase + instrument stops (if no other zone has same color)
 - 🔊 button → mute/unmute toggle
 - 💾 button → save to gallery
 - 🏠 button → home (confirm if has unsaved changes)
-- Native: haptic feedback on zone tap
-- Web: extra-large bounce animation on zone tap
+- Native: haptic feedback on body part tap
+- Zone tap feedback: brief opacity flash (0.45 → 1.0 spring) on the tapped part
 
 ### Screen 3 — Gallery (app/gallery.tsx)
 **Purpose:** View saved paintings
 **Elements:**
 - Grid of saved character thumbnails (2 columns)
-- Each shows character + painted zones + timestamp
-- Tap → view full size + replay music
+- Each shows character + painted body parts + timestamp
 - Long press → delete option
 - Empty state: "Save a painting to see it here! 🎨"
 
@@ -141,32 +155,36 @@ interface AudioEngine {
 ## 5. Data model
 
 ```typescript
-// Zone state
-type ZoneId = string; // e.g. 'head', 'body', 'leftArm'
+type ZoneId = 'face' | 'hair' | 'leftEye' | 'rightEye' | 'nose' | 'mouth' | 'accessory';
 type PaintColor = 'red' | 'yellow' | 'blue' | 'green' | 'purple' | 'orange' | 'white';
 type ZoneState = Record<ZoneId, PaintColor | null>;
 
-// Saved painting
 interface SavedPainting {
-  id: string;             // uuid
-  characterId: string;    // 'blobby' | 'sprout' | 'starby'
+  id: string;
+  characterId: string;
   zones: ZoneState;
-  createdAt: string;      // ISO date string
-  thumbnail?: string;     // base64 snapshot (future)
+  createdAt: string;
 }
 
-// Character definition
-interface CharacterDef {
-  id: string;
-  name: string;
-  zones: ZoneDefinition[];
-}
+// Zone shape types
+type ZoneShape =
+  | { kind: 'circle';  cx: number; cy: number; r: number }
+  | { kind: 'ellipse'; cx: number; cy: number; rx: number; ry: number }
+  | { kind: 'path';    d: string };
 
 interface ZoneDefinition {
   id: ZoneId;
-  path: string;           // SVG path data
-  label: string;          // accessibility label
-  defaultColor: string;   // unpainted color
+  label: string;
+  shape: ZoneShape;
+}
+
+interface CharacterDef {
+  id: string;
+  name: string;
+  emoji: string;
+  viewBox: string;
+  aspectRatio: number; // height / width
+  zones: ZoneDefinition[];
 }
 ```
 
@@ -174,32 +192,19 @@ interface ZoneDefinition {
 
 ## 6. Analytics events
 
-Log these events via Firebase Analytics. Every event must fire on both native and web.
-
 ```typescript
-// App lifecycle
-app_open          → { platform: 'ios' | 'android' | 'web', version: string }
-screen_view       → { screen_name: string }
-
-// Character
-character_selected → { character_id: string }
-
-// Painting
+app_open          → { platform, version }
+screen_view       → { screen_name }
+character_selected → { character_id }
 zone_painted      → { character_id, zone_id, color }
 zone_erased       → { character_id, zone_id }
 all_cleared       → { character_id }
-painting_saved    → { character_id, zones_count: number }
-
-// Audio
+painting_saved    → { character_id, zones_count }
 audio_started     → { color, instrument }
 audio_stopped     → { color, instrument }
 audio_muted       → { }
 audio_unmuted     → { }
-
-// Web specific
-pwa_install_prompted → { }
-pwa_installed        → { }
-audio_gate_shown     → { }     // web autoplay overlay shown
+audio_gate_shown     → { }
 audio_gate_dismissed → { }
 ```
 
@@ -212,34 +217,36 @@ audio_gate_dismissed → { }
 | App cold start | < 3 seconds |
 | Audio start latency | < 200ms after tap |
 | Web bundle size | < 3MB total |
-| Web load time (3G) | < 5 seconds |
-| Touch target size | Minimum 72x72px |
+| Touch target size | Minimum 72×72px |
 | Supported iOS | 15+ |
-| Supported Android | API 26+ (Android 8) |
+| Supported Android | API 26+ |
 | Supported browsers | Chrome 90+, Safari 14+, Firefox 88+ |
-| Offline | Full offline capability (PWA + native) |
+| Offline | Full offline (PWA + native) |
 
 ---
 
 ## 8. Child safety requirements
 
-- No user accounts required
-- No personal data collected from children
-- No ads in the free version
+- No user accounts, no PII collected
+- No ads in free version
 - No external links visible to children
 - No dark/horror themes — ever
-- No social features (no sharing PII)
-- COPPA compliant (no data collection under 13)
-- App Store rating: 4+ (iOS), Everyone (Android)
+- COPPA compliant
+- App Store: 4+ (iOS), Everyone (Android)
 
 ---
 
-## 9. Monetisation (v1.1 — post-launch)
+## 9. Color → instrument mapping
 
-- Free tier: 3 characters, full features
-- Premium ($1.99 one-time): 6 additional characters
-- NO subscriptions, NO ads, NO consumable IAP
-- Revenue via RevenueCat
+| Color | Hex | Instrument | Audio file |
+|---|---|---|---|
+| 🔴 Red | #FF4B4B | Drums | drum_loop.mp3 |
+| 🟡 Yellow | #FFD700 | Guitar | guitar_loop.mp3 |
+| 🔵 Blue | #4B9EFF | Piano | piano_loop.mp3 |
+| 🟢 Green | #4BCC6A | Marimba | marimba_loop.mp3 |
+| 🟣 Purple | #B44BFF | Synth | synth_loop.mp3 |
+| 🟠 Orange | #FF8C00 | Bass | bass_loop.mp3 |
+| ⚪ White | #F5F5F5 | Bell | bell_loop.mp3 |
 
 ---
 
@@ -247,7 +254,8 @@ audio_gate_dismissed → { }
 
 | Version | Description |
 |---|---|
-| 1.0.0 | Initial release: 3 characters, 7 colors, paint + music |
-| 1.1.0 | Gallery save/load, premium characters |
-| 1.2.0 | Daily character (changes each day) |
-| 2.0.0 | Multiplayer paint (2 children, same device) |
+| 1.0.0 | Initial: 3 characters, abstract zone painting, 7 colors |
+| 1.0.1 | QA fixes: 72px touch targets, zone animation, analytics, audio guards |
+| 1.1.0 | Body parts redesign: face/hair/eyes/nose/mouth/accessory per character |
+| 1.2.0 | Gallery save/load, PWA offline |
+| 2.0.0 | Premium characters, multiplayer |
